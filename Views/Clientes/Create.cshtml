@@ -1,0 +1,95 @@
+﻿@model FacturacionApp.Models.Cliente
+
+@{
+    ViewData["Title"] = "Nuevo Cliente";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">
+                <i class="fas fa-user-plus me-2"></i>@ViewData["Title"]
+            </h3>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" class="needs-validation" novalidate>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="Nombre" class="form-label fw-bold"></label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Ej: Juan Pérez" required />
+                            <span asp-validation-for="Nombre" class="text-danger"></span>
+                            <div class="invalid-feedback">
+                                Por favor ingrese el nombre del cliente
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="NIF" class="form-label fw-bold"></label>
+                            <input asp-for="NIF" class="form-control" placeholder="Ej: X12345678" required />
+                            <span asp-validation-for="NIF" class="text-danger"></span>
+                            <div class="invalid-feedback">
+                                El NIF es obligatorio
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="Email" class="form-label fw-bold"></label>
+                            <input asp-for="Email" type="email" class="form-control" placeholder="Ej: cliente@ejemplo.com" />
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Telefono" class="form-label fw-bold"></label>
+                            <input asp-for="Telefono" class="form-control" placeholder="Ej: 600123456" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Direccion" class="form-label fw-bold"></label>
+                    <textarea asp-for="Direccion" class="form-control" rows="2" placeholder="Calle, número, ciudad"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i> Guardar Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Validación del lado del cliente mejorada
+        (function () {
+            'use strict'
+
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
+
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+}
