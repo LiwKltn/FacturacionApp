@@ -1,0 +1,22 @@
+﻿@model FacturacionApp.Models.Empresa
+
+@{
+    ViewData["Title"] = "Eliminar Empresa";
+}
+
+<h3>¿Está seguro de eliminar esta empresa?</h3>
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Nombre)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Nombre)</dd>
+
+        <dt class="col-sm-2">@Html.DisplayNameFor(model => model.Cif)</dt>
+        <dd class="col-sm-10">@Html.DisplayFor(model => model.Cif)</dd>
+    </dl>
+
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Eliminar" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>

@@ -4,21 +4,20 @@ using FacturacionApp.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Configuración base de la aplicación
+
 builder.Services.AddControllersWithViews();
 
-// 2. Configuración del DbContext
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString, sqlOptions =>
-    {
-        sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null);
-    }));
+{
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure());
+    options.EnableSensitiveDataLogging(); // Solo para desarrollo
+});
 
 // 3. Configuración para desarrollo
 if (builder.Environment.IsDevelopment())

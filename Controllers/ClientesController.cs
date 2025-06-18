@@ -14,19 +14,19 @@ namespace FacturacionApp.Controllers
             _context = context;
         }
 
-        // GET: Clientes
+        
         public async Task<IActionResult> Index()
         {
             return View(await _context.Clientes.ToListAsync());
         }
 
-        // GET: Clientes/Create
+        
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Clientes/Create
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Nombre,NIF,Direccion,Telefono,Email")] Cliente cliente)

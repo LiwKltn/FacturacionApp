@@ -1,36 +1,141 @@
 ﻿@model FacturacionApp.Models.Factura
 
-<h1>Crear Nueva Factura</h1>
+@{
+    ViewData["Title"] = "Nueva Factura";
+}
 
-<form asp-action="Create">
-    <div class="form-group">
-        <label asp-for="Numero" class="control-label"></label>
-        <input asp-for="Numero" class="form-control" />
-        <span asp-validation-for="Numero" class="text-danger"></span>
-    </div>
+<div class="container mt-4">
+    <h2>@ViewData["Title"]</h2>
+    <hr />
 
-    <div class="form-group">
-        <label asp-for="Fecha" class="control-label"></label>
-        <input asp-for="Fecha" class="form-control" type="date" />
-        <span asp-validation-for="Fecha" class="text-danger"></span>
-    </div>
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
 
-    <div class="form-group">
-        <label asp-for="ClienteId" class="control-label">Cliente</label>
-        <select asp-for="ClienteId" class="form-control"
-                asp-items="@(new SelectList(ViewBag.Clientes as IEnumerable<Cliente>, "Id", "Nombre"))">
-            <option value="">-- Seleccione un Cliente --</option>
-        </select>
-        <span asp-validation-for="ClienteId" class="text-danger"></span>
-    </div>
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-    <div class="form-group">
-        <input type="submit" value="Crear" class="btn btn-primary" />
-    </div>
-</form>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="Numero" class="control-label"></label>
+                    <input asp-for="Numero" class="form-control" readonly />
+                    <span asp-validation-for="Numero" class="text-danger"></span>
+                </div>
 
-<a asp-action="Index">Volver al listado</a>
+                <div class="form-group mb-3">
+                    <label asp-for="Fecha" class="control-label"></label>
+                    <input asp-for="Fecha" type="date" class="form-control" />
+                    <span asp-validation-for="Fecha" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group mb-3">
+                    <label asp-for="ClienteId" class="control-label"></label>
+                    <select asp-for="ClienteId" asp-items="ViewBag.Clientes" class="form-control">
+                        <option value="">-- Seleccione Cliente --</option>
+                    </select>
+                    <span asp-validation-for="ClienteId" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="EmpresaId" class="control-label"></label>
+                    <select asp-for="EmpresaId" asp-items="ViewBag.Empresas" class="form-control">
+                        <option value="">-- Seleccione Empresa --</option>
+                    </select>
+                    <span asp-validation-for="EmpresaId" class="text-danger"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección para líneas de factura -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Líneas de Factura</h5>
+            </div>
+            <div class="card-body">
+                <table class="table" id="lineasTable">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio Unitario</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Lineas != null)
+                        {
+                            @for (var i = 0; i < Model.Lineas.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <input asp-for="Lineas[i].Cantidad" class="form-control" />
+                                        <span asp-validation-for="Lineas[i].Cantidad" class="text-danger"></span>
+                                    </td>
+                                    <td>
+                                        <input asp-for="Lineas[i].PrecioUnitario" class="form-control" />
+                                        <span asp-validation-for="Lineas[i].PrecioUnitario" class="text-danger"></span>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger" onclick="removeLine(this)">Eliminar</button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-success" onclick="addLine()">+ Agregar Línea</button>
+            </div>
+        </div>
+
+        <div class="form-group mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Guardar Factura
+            </button>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Volver al Listado
+            </a>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Función para agregar nuevas líneas dinámicamente
+        function addLine() {
+            const table = document.getElementById('lineasTable').getElementsByTagName('tbody')[0];
+            const newRow = table.insertRow();
+            const index = table.rows.length - 1;
+
+            newRow.innerHTML = `
+                <td>
+                    <input name="Lineas[${index}].Producto" class="form-control" />
+                </td>
+                <td>
+                    <input name="Lineas[${index}].Cantidad" class="form-control" />
+                </td>
+                <td>
+                    <input name="Lineas[${index}].PrecioUnitario" class="form-control" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-danger" onclick="removeLine(this)">Eliminar</button>
+                </td>
+            `;
+        }
+
+        // Función para eliminar líneas
+        function removeLine(button) {
+            const row = button.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+    </script>
 }

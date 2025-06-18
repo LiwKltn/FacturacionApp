@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FacturacionApp.Models
 {
@@ -7,16 +8,30 @@ namespace FacturacionApp.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "El nombre es obligatorio")]
-        public string Nombre { get; set; }
+        [StringLength(100, ErrorMessage = "Máximo 100 caracteres")]
+        [Display(Name = "Nombre Empresa")]
+        public string Nombre { get; set; } = "Empresa Predeterminada";
 
-        [Required(ErrorMessage = "El NIF es obligatorio")]
-        public string NIF { get; set; }
+        [Required(ErrorMessage = "El CIF es obligatorio")]
+        [StringLength(20, ErrorMessage = "Máximo 20 caracteres")]
+        [RegularExpression(@"^[A-Za-z]\d{7}[A-Za-z0-9]$", ErrorMessage = "Formato de CIF inválido")]
+        [Column("Cif")] 
+        [Display(Name = "CIF/NIF")]
+        public string Cif { get; set; }
 
-        public string Direccion { get; set; }
-        public string Telefono { get; set; }
-        public string Email { get; set; }
+        [StringLength(200)]
+        [Display(Name = "Dirección")]
+        public string? Direccion { get; set; }
 
-        [Display(Name = "Logo")]
-        public string LogoUrl { get; set; }
+        [Phone(ErrorMessage = "Teléfono inválido")]
+        [StringLength(15, ErrorMessage = "Máximo 15 caracteres")]
+        [Display(Name = "Teléfono")]
+        public string? Telefono { get; set; } 
+
+        [EmailAddress(ErrorMessage = "Email inválido")]
+        [Display(Name = "Correo Electrónico")]
+        public string? Email { get; set; }
+
+        
     }
 }

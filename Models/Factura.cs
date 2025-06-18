@@ -5,6 +5,7 @@ namespace FacturacionApp.Models
 {
     public class Factura
     {
+
         [Key]
         public int Id { get; set; }
 
@@ -72,4 +73,5 @@ namespace FacturacionApp.Models
             }
         }
     }
+
 }
