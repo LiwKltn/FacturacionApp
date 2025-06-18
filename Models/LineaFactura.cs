@@ -5,30 +5,31 @@ namespace FacturacionApp.Models
 {
     public class LineaFactura
     {
+        [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "El concepto es obligatorio")]
-        [StringLength(100, MinimumLength = 3)]
-        public required string Concepto { get; set; }
+        [Required]
+        public int FacturaId { get; set; }
 
-        [Range(0.01, double.MaxValue, ErrorMessage = "La cantidad debe ser mayor que 0")]
-        public decimal Cantidad { get; set; } = 1;
+        [Required]
+        public int ProductoId { get; set; }
 
-        [Range(0.01, double.MaxValue, ErrorMessage = "El precio debe ser mayor que 0")]
-        [DataType(DataType.Currency)]
+        [Required]
+        [Range(1, int.MaxValue)]
+        public int Cantidad { get; set; }
+
+        [Required]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal PrecioUnitario { get; set; }
 
-        [Range(0, 100, ErrorMessage = "El IVA debe estar entre 0% y 100%")]
-        [Display(Name = "% IVA")]
-        public decimal IvaPorcentaje { get; set; } = 21;
+        [Required]
+        [Column(TypeName = "decimal(5,2)")]
+        public decimal IvaPorcentaje { get; set; }
 
-        [NotMapped]
-        [Display(Name = "Importe Total")]
-        [DataType(DataType.Currency)]
-        public decimal ImporteTotal => Cantidad * PrecioUnitario * (1 + IvaPorcentaje / 100);
+        [ForeignKey("FacturaId")]
+        public virtual Factura Factura { get; set; } = null!;
 
-        // Relación con Factura
-        public int FacturaId { get; set; }
-        public Factura Factura { get; set; }
+        [ForeignKey("ProductoId")]
+        public virtual Producto Producto { get; set; } = null!;
     }
 }

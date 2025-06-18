@@ -1,10 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using FacturacionApp.Data;
+﻿using FacturacionApp.Data;
 using FacturacionApp.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -13,168 +11,218 @@ namespace FacturacionApp.Controllers
     public class FacturasController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly ILogger<FacturasController> _logger;
 
-        public FacturasController(ApplicationDbContext context, ILogger<FacturasController> logger)
+        public FacturasController(ApplicationDbContext context)
         {
             _context = context;
-            _logger = logger;
         }
 
-        
+        // GET: Facturas
         public async Task<IActionResult> Index()
         {
-            try
-            {
-                var facturas = await _context.Facturas
-                    .Include(f => f.Cliente)
-                        .ThenInclude(c => c.Direccion) 
-                    .Include(f => f.Empresa)
-                    .Include(f => f.Lineas)
-                        .ThenInclude(l => l.Producto) 
-                    .AsSplitQuery() 
-                    .OrderByDescending(f => f.Fecha)
-                    .ThenBy(f => f.Numero)
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                // DEBUG: Verifica en consola
-                Console.WriteLine($"Se encontraron {facturas.Count} facturas");
-                if (facturas.Any())
-                {
-                    Console.WriteLine($"Primera factura: {facturas[0].Numero} con {facturas[0].Lineas.Count} líneas");
-                }
-
-                return View(facturas);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERROR: {ex.Message}");
-                TempData["ErrorMessage"] = "Error al cargar facturas";
-                return View(new List<Factura>());
-            }
+            return View(await _context.Facturas
+                .Include(f => f.Cliente)
+                .Include(f => f.Empresa)
+                .ToListAsync());
         }
 
-        
-        public IActionResult Create()
+        // GET: Facturas/Details/5
+        public async Task<IActionResult> Details(int? id)
         {
-            try
+            if (id == null)
             {
-                var clientes = _context.Clientes.AsNoTracking().OrderBy(c => c.Nombre).ToList();
-                var empresas = _context.Empresas.AsNoTracking().OrderBy(e => e.Nombre).ToList();
-
-                if (!clientes.Any() || !empresas.Any())
-                {
-                    TempData["ErrorMessage"] = "Debe existir al menos un cliente y una empresa registrados";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var nuevaFactura = new Factura
-                {
-                    Numero = GenerarNumeroFactura(),
-                    Fecha = DateTime.Today,
-                    ClienteId = clientes.First().Id,
-                    EmpresaId = empresas.First().Id,
-                    Cliente = clientes.First(),
-                    Empresa = empresas.First(),
-                    Lineas = new List<LineaFactura>()
-                };
-
-                ViewBag.Clientes = new SelectList(clientes, "Id", "Nombre");
-                ViewBag.Empresas = new SelectList(empresas, "Id", "Nombre");
-
-                return View(nuevaFactura);
+                return NotFound();
             }
-            catch (Exception ex)
+
+            var factura = await _context.Facturas
+                .Include(f => f.Cliente)
+                .Include(f => f.Empresa)
+                .Include(f => f.Lineas)
+                    .ThenInclude(l => l.Producto) // Carga los productos relacionados
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (factura == null)
             {
-                _logger.LogError(ex, "Error al cargar formulario de creación de factura");
-                TempData["ErrorMessage"] = "Error al cargar el formulario";
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
+
+            return View(factura);
         }
 
-        
+        // GET: Facturas/Create
+        public async Task<IActionResult> Create()
+        {
+            ViewData["Clientes"] = await _context.Clientes.ToListAsync();
+            ViewData["Empresas"] = await _context.Empresas.ToListAsync();
+            ViewData["Productos"] = await _context.Productos.ToListAsync();
+            return View();
+        }
+
+        // POST: Facturas/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Numero,Fecha,ClienteId,EmpresaId,Lineas")] Factura factura)
+        public async Task<IActionResult> Create(
+            [Bind("Id,Numero,Fecha,ClienteId,EmpresaId")] Factura factura,
+            int[] productoIds,
+            int[] cantidades,
+            decimal[] precios)
         {
-            try
+            if (ModelState.IsValid)
             {
-                
-                if (factura.Fecha > DateTime.Today.AddDays(30))
+                factura.Lineas = new List<LineaFactura>();
+
+                for (int i = 0; i < productoIds.Length; i++)
                 {
-                    ModelState.AddModelError("Fecha", "La fecha no puede ser más de 30 días en el futuro");
-                }
-
-                
-                var cliente = await _context.Clientes.FindAsync(factura.ClienteId);
-                var empresa = await _context.Empresas.FindAsync(factura.EmpresaId);
-
-                if (cliente == null || empresa == null)
-                {
-                    ModelState.AddModelError("", "Cliente o Empresa no válidos");
-                }
-
-                if (ModelState.IsValid)
-                {
-                    
-                    factura.Cliente = cliente!;
-                    factura.Empresa = empresa!;
-                    factura.Lineas ??= new List<LineaFactura>();
-
-                    
-                    if (!factura.Lineas.Any())
+                    factura.Lineas.Add(new LineaFactura
                     {
-                        ModelState.AddModelError("", "Debe agregar al menos una línea de factura");
+                        ProductoId = productoIds[i],
+                        Cantidad = cantidades[i],
+                        PrecioUnitario = precios[i],
+                        IvaPorcentaje = await _context.Productos
+                            .Where(p => p.Id == productoIds[i])
+                            .Select(p => p.IvaPorcentaje)
+                            .FirstOrDefaultAsync()
+                    });
+                }
+
+                _context.Add(factura);
+                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
+            }
+
+            // Recargar datos si hay error
+            ViewData["Clientes"] = await _context.Clientes.ToListAsync();
+            ViewData["Empresas"] = await _context.Empresas.ToListAsync();
+            ViewData["Productos"] = await _context.Productos.ToListAsync();
+            return View(factura);
+        }
+
+        // GET: Facturas/Edit/5
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var factura = await _context.Facturas
+                .Include(f => f.Lineas)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (factura == null)
+            {
+                return NotFound();
+            }
+
+            ViewData["Clientes"] = await _context.Clientes.ToListAsync();
+            ViewData["Empresas"] = await _context.Empresas.ToListAsync();
+            ViewData["Productos"] = await _context.Productos.ToListAsync();
+            return View(factura);
+        }
+
+        // POST: Facturas/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(
+            int id,
+            [Bind("Id,Numero,Fecha,ClienteId,EmpresaId")] Factura factura,
+            int[] productoIds,
+            int[] cantidades,
+            decimal[] precios)
+        {
+            if (id != factura.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Eliminar líneas existentes
+                    var lineasExistentes = await _context.LineaFacturas
+                        .Where(l => l.FacturaId == id)
+                        .ToListAsync();
+                    _context.LineaFacturas.RemoveRange(lineasExistentes);
+
+                    // Agregar nuevas líneas
+                    factura.Lineas = new List<LineaFactura>();
+                    for (int i = 0; i < productoIds.Length; i++)
+                    {
+                        factura.Lineas.Add(new LineaFactura
+                        {
+                            FacturaId = id,
+                            ProductoId = productoIds[i],
+                            Cantidad = cantidades[i],
+                            PrecioUnitario = precios[i],
+                            IvaPorcentaje = await _context.Productos
+                                .Where(p => p.Id == productoIds[i])
+                                .Select(p => p.IvaPorcentaje)
+                                .FirstOrDefaultAsync()
+                        });
+                    }
+
+                    _context.Update(factura);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!FacturaExists(factura.Id))
+                    {
+                        return NotFound();
                     }
                     else
                     {
-                        using var transaction = await _context.Database.BeginTransactionAsync();
-                        try
-                        {
-                            _context.Add(factura);
-                            await _context.SaveChangesAsync();
-                            await transaction.CommitAsync();
-
-                            TempData["SuccessMessage"] = "Factura creada exitosamente";
-                            return RedirectToAction(nameof(Index));
-                        }
-                        catch (Exception ex)
-                        {
-                            await transaction.RollbackAsync();
-                            _logger.LogError(ex, "Error al guardar factura");
-                            TempData["ErrorMessage"] = "Error al guardar la factura en la base de datos";
-                        }
+                        throw;
                     }
                 }
-
-                
-                ViewBag.Clientes = new SelectList(await _context.Clientes.ToListAsync(), "Id", "Nombre", factura.ClienteId);
-                ViewBag.Empresas = new SelectList(await _context.Empresas.ToListAsync(), "Id", "Nombre", factura.EmpresaId);
-                return View(factura);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error crítico al crear factura");
-                TempData["ErrorMessage"] = "Error crítico al procesar la factura";
                 return RedirectToAction(nameof(Index));
             }
+            return View(factura);
         }
 
-        private string GenerarNumeroFactura()
+        // GET: Facturas/Delete/5
+        public async Task<IActionResult> Delete(int? id)
         {
-            var ultimoNumero = _context.Facturas
-                .OrderByDescending(f => f.Numero)
-                .Select(f => f.Numero)
-                .FirstOrDefault();
-
-            if (string.IsNullOrEmpty(ultimoNumero))
+            if (id == null)
             {
-                return "FAC-0001";
+                return NotFound();
             }
 
-            var numero = int.Parse(ultimoNumero.Split('-')[1]) + 1;
-            return $"FAC-{numero:D4}";
+            var factura = await _context.Facturas
+                .Include(f => f.Cliente)
+                .Include(f => f.Empresa)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (factura == null)
+            {
+                return NotFound();
+            }
+
+            return View(factura);
+        }
+
+        // POST: Facturas/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var factura = await _context.Facturas
+                .Include(f => f.Lineas)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (factura != null)
+            {
+                _context.Facturas.Remove(factura);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool FacturaExists(int id)
+        {
+            return _context.Facturas.Any(e => e.Id == id);
         }
     }
 }

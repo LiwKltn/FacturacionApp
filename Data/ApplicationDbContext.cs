@@ -1,49 +1,41 @@
-﻿using Microsoft.EntityFrameworkCore;
-using FacturacionApp.Models;
+﻿using FacturacionApp.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace FacturacionApp.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options) { }
+            : base(options)
+        {
+        }
 
-        public DbSet<Cliente> Clientes { get; set; }
-        public DbSet<Empresa> Empresas { get; set; }
-        public DbSet<Factura> Facturas { get; set; }
-        public DbSet<LineaFactura> LineasFactura { get; set; }
+        // DbSets requeridos
+        public DbSet<Producto> Productos { get; set; } = null!;
+        public DbSet<LineaFactura> LineaFacturas { get; set; } = null!;
+        public DbSet<Factura> Facturas { get; set; } = null!;
+        public DbSet<Cliente> Clientes { get; set; } = null!;
+        public DbSet<Empresa> Empresas { get; set; } = null!;
 
-        //protected override void OnModelCreating(ModelBuilder modelBuilder);
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configuración de la relación Factura-Líneas
-            modelBuilder.Entity<Factura>()
-                .HasMany(f => f.Lineas)
-                .WithOne(l => l.Factura)
-                .HasForeignKey(l => l.FacturaId)
-                .OnDelete(DeleteBehavior.Cascade); // Elimina líneas al borrar factura
+            base.OnModelCreating(modelBuilder);
 
-            // Configuración de propiedades requeridas
-            modelBuilder.Entity<Factura>()
-                .Property(f => f.Numero)
-                .IsRequired()
-                .HasMaxLength(20);
+            // Configuraciones de modelos
+            modelBuilder.Entity<Producto>(entity =>
+            {
+                entity.HasIndex(p => p.Codigo).IsUnique();
+                entity.Property(p => p.Precio).HasColumnType("decimal(18,2)");
+            });
 
-            // Asegurar que las relaciones sean requeridas
-            modelBuilder.Entity<Factura>()
-                .HasOne(f => f.Cliente)
-                .WithMany()
-                .HasForeignKey(f => f.ClienteId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired();
-
-            modelBuilder.Entity<Factura>()
-                .HasOne(f => f.Empresa)
-                .WithMany()
-                .HasForeignKey(f => f.EmpresaId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired();
+            modelBuilder.Entity<LineaFactura>(entity =>
+            {
+                entity.HasOne(l => l.Producto)
+                    .WithMany()
+                    .HasForeignKey(l => l.ProductoId);
+            });
         }
     }
 }
-
