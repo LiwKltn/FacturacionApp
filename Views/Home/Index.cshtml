@@ -1,8 +1,37 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
+    Layout = "_Layout";
 }
 
+
 <div class="text-center">
-    <h1 class="display-4">Bienvenido</h1>
-    <p>Facturación inteligente para empresas eficientes.</p>
+    <h1 class="display-4">Bienvenido al Sistema de Facturación</h1>
+    <p>Sistema integral para la gestión de facturas, clientes y empresas.</p>
+
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-receipt"></i> Facturas</h5>
+                    <a asp-controller="Facturas" asp-action="Index" class="btn btn-primary">Gestionar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-people-fill"></i> Clientes</h5>
+                    <a asp-controller="Clientes" asp-action="Index" class="btn btn-primary">Gestionar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-building"></i> Empresas</h5>
+                    <a asp-controller="Empresas" asp-action="Index" class="btn btn-primary">Gestionar</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

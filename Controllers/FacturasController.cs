@@ -1,8 +1,10 @@
 ﻿using FacturacionApp.Data;
 using FacturacionApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -38,7 +40,7 @@ namespace FacturacionApp.Controllers
                 .Include(f => f.Cliente)
                 .Include(f => f.Empresa)
                 .Include(f => f.Lineas)
-                    .ThenInclude(l => l.Producto) // Carga los productos relacionados
+                    .ThenInclude(l => l.Producto)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (factura == null)
@@ -52,10 +54,45 @@ namespace FacturacionApp.Controllers
         // GET: Facturas/Create
         public async Task<IActionResult> Create()
         {
-            ViewData["Clientes"] = await _context.Clientes.ToListAsync();
-            ViewData["Empresas"] = await _context.Empresas.ToListAsync();
-            ViewData["Productos"] = await _context.Productos.ToListAsync();
-            return View();
+            // Generar número de factura automático
+            var ultimaFactura = await _context.Facturas
+                .OrderByDescending(f => f.Id)
+                .FirstOrDefaultAsync();
+
+            var siguienteNumero = "FAC-0001"; // Formato: FAC-0001, FAC-0002, etc.
+
+            if (ultimaFactura != null && !string.IsNullOrEmpty(ultimaFactura.Numero))
+            {
+                try
+                {
+                    // Extraer la parte numérica del último número
+                    var partes = ultimaFactura.Numero.Split('-');
+                    if (partes.Length == 2 && int.TryParse(partes[1], out int ultimoNumero))
+                    {
+                        siguienteNumero = $"FAC-{(ultimoNumero + 1).ToString("D4")}";
+                    }
+                }
+                catch
+                {
+                    // Si hay algún error en el formato, continuar con la numeración por ID
+                    siguienteNumero = $"FAC-{ultimaFactura.Id + 1:D4}";
+                }
+            }
+
+            // Crear nueva factura con número generado
+            var factura = new Factura
+            {
+                Numero = siguienteNumero,
+                Fecha = DateTime.Today,
+                Lineas = new List<LineaFactura>()
+            };
+
+            // Cargar datos para los dropdowns
+            ViewBag.Clientes = new SelectList(await _context.Clientes.ToListAsync(), "Id", "Nombre");
+            ViewBag.Empresas = new SelectList(await _context.Empresas.ToListAsync(), "Id", "Nombre");
+            ViewBag.Productos = new SelectList(await _context.Productos.ToListAsync(), "Id", "Nombre");
+
+            return View(factura);
         }
 
         // POST: Facturas/Create
@@ -67,6 +104,12 @@ namespace FacturacionApp.Controllers
             int[] cantidades,
             decimal[] precios)
         {
+            // Validar que el número de factura sea único
+            if (await _context.Facturas.AnyAsync(f => f.Numero == factura.Numero))
+            {
+                ModelState.AddModelError("Numero", "Este número de factura ya existe");
+            }
+
             if (ModelState.IsValid)
             {
                 factura.Lineas = new List<LineaFactura>();
@@ -91,9 +134,10 @@ namespace FacturacionApp.Controllers
             }
 
             // Recargar datos si hay error
-            ViewData["Clientes"] = await _context.Clientes.ToListAsync();
-            ViewData["Empresas"] = await _context.Empresas.ToListAsync();
-            ViewData["Productos"] = await _context.Productos.ToListAsync();
+            ViewBag.Clientes = new SelectList(await _context.Clientes.ToListAsync(), "Id", "Nombre");
+            ViewBag.Empresas = new SelectList(await _context.Empresas.ToListAsync(), "Id", "Nombre");
+            ViewBag.Productos = new SelectList(await _context.Productos.ToListAsync(), "Id", "Nombre");
+
             return View(factura);
         }
 
@@ -114,9 +158,10 @@ namespace FacturacionApp.Controllers
                 return NotFound();
             }
 
-            ViewData["Clientes"] = await _context.Clientes.ToListAsync();
-            ViewData["Empresas"] = await _context.Empresas.ToListAsync();
-            ViewData["Productos"] = await _context.Productos.ToListAsync();
+            ViewBag.Clientes = new SelectList(await _context.Clientes.ToListAsync(), "Id", "Nombre");
+            ViewBag.Empresas = new SelectList(await _context.Empresas.ToListAsync(), "Id", "Nombre");
+            ViewBag.Productos = new SelectList(await _context.Productos.ToListAsync(), "Id", "Nombre");
+
             return View(factura);
         }
 
@@ -178,6 +223,12 @@ namespace FacturacionApp.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            // Recargar datos si hay error
+            ViewBag.Clientes = new SelectList(await _context.Clientes.ToListAsync(), "Id", "Nombre");
+            ViewBag.Empresas = new SelectList(await _context.Empresas.ToListAsync(), "Id", "Nombre");
+            ViewBag.Productos = new SelectList(await _context.Productos.ToListAsync(), "Id", "Nombre");
+
             return View(factura);
         }
 

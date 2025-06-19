@@ -3,7 +3,9 @@
 @{
     ViewData["Title"] = "Nueva Factura";
 }
-
+@{
+    Layout = "_Layout";
+}
 <div class="container mt-4">
     <h2>@ViewData["Title"]</h2>
     <hr />
@@ -22,7 +24,7 @@
             <div class="col-md-6">
                 <div class="form-group mb-3">
                     <label asp-for="Numero" class="control-label"></label>
-                    <input asp-for="Numero" class="form-control" readonly />
+                    <input asp-for="Numero" class="form-control" />
                     <span asp-validation-for="Numero" class="text-danger"></span>
                 </div>
 
@@ -52,7 +54,7 @@
             </div>
         </div>
 
-        <!-- Sección para líneas de factura -->
+       
         <div class="card mt-4">
             <div class="card-header">
                 <h5>Líneas de Factura</h5>
@@ -110,7 +112,7 @@
     }
 
     <script>
-        // Función para agregar nuevas líneas dinámicamente
+        
         function addLine() {
             const table = document.getElementById('lineasTable').getElementsByTagName('tbody')[0];
             const newRow = table.insertRow();
@@ -132,7 +134,7 @@
             `;
         }
 
-        // Función para eliminar líneas
+        
         function removeLine(button) {
             const row = button.parentNode.parentNode;
             row.parentNode.removeChild(row);
