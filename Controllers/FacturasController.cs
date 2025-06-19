@@ -19,7 +19,7 @@ namespace FacturacionApp.Controllers
             _context = context;
         }
 
-        // GET: Facturas
+        
         public async Task<IActionResult> Index()
         {
             return View(await _context.Facturas
@@ -28,7 +28,7 @@ namespace FacturacionApp.Controllers
                 .ToListAsync());
         }
 
-        // GET: Facturas/Details/5
+        
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -51,21 +51,21 @@ namespace FacturacionApp.Controllers
             return View(factura);
         }
 
-        // GET: Facturas/Create
+        
         public async Task<IActionResult> Create()
         {
-            // Generar número de factura automático
+            
             var ultimaFactura = await _context.Facturas
                 .OrderByDescending(f => f.Id)
                 .FirstOrDefaultAsync();
 
-            var siguienteNumero = "FAC-0001"; // Formato: FAC-0001, FAC-0002, etc.
+            var siguienteNumero = "FAC-0001"; 
 
             if (ultimaFactura != null && !string.IsNullOrEmpty(ultimaFactura.Numero))
             {
                 try
                 {
-                    // Extraer la parte numérica del último número
+                    
                     var partes = ultimaFactura.Numero.Split('-');
                     if (partes.Length == 2 && int.TryParse(partes[1], out int ultimoNumero))
                     {
@@ -74,12 +74,12 @@ namespace FacturacionApp.Controllers
                 }
                 catch
                 {
-                    // Si hay algún error en el formato, continuar con la numeración por ID
+                    
                     siguienteNumero = $"FAC-{ultimaFactura.Id + 1:D4}";
                 }
             }
 
-            // Crear nueva factura con número generado
+            
             var factura = new Factura
             {
                 Numero = siguienteNumero,
@@ -87,7 +87,7 @@ namespace FacturacionApp.Controllers
                 Lineas = new List<LineaFactura>()
             };
 
-            // Cargar datos para los dropdowns
+            
             ViewBag.Clientes = new SelectList(await _context.Clientes.ToListAsync(), "Id", "Nombre");
             ViewBag.Empresas = new SelectList(await _context.Empresas.ToListAsync(), "Id", "Nombre");
             ViewBag.Productos = new SelectList(await _context.Productos.ToListAsync(), "Id", "Nombre");
@@ -95,7 +95,6 @@ namespace FacturacionApp.Controllers
             return View(factura);
         }
 
-        // POST: Facturas/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
@@ -104,7 +103,7 @@ namespace FacturacionApp.Controllers
             int[] cantidades,
             decimal[] precios)
         {
-            // Validar que el número de factura sea único
+            
             if (await _context.Facturas.AnyAsync(f => f.Numero == factura.Numero))
             {
                 ModelState.AddModelError("Numero", "Este número de factura ya existe");
@@ -133,7 +132,7 @@ namespace FacturacionApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Recargar datos si hay error
+            
             ViewBag.Clientes = new SelectList(await _context.Clientes.ToListAsync(), "Id", "Nombre");
             ViewBag.Empresas = new SelectList(await _context.Empresas.ToListAsync(), "Id", "Nombre");
             ViewBag.Productos = new SelectList(await _context.Productos.ToListAsync(), "Id", "Nombre");
@@ -141,7 +140,7 @@ namespace FacturacionApp.Controllers
             return View(factura);
         }
 
-        // GET: Facturas/Edit/5
+        
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -165,7 +164,7 @@ namespace FacturacionApp.Controllers
             return View(factura);
         }
 
-        // POST: Facturas/Edit/5
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
@@ -184,13 +183,13 @@ namespace FacturacionApp.Controllers
             {
                 try
                 {
-                    // Eliminar líneas existentes
+                    
                     var lineasExistentes = await _context.LineaFacturas
                         .Where(l => l.FacturaId == id)
                         .ToListAsync();
                     _context.LineaFacturas.RemoveRange(lineasExistentes);
 
-                    // Agregar nuevas líneas
+                    
                     factura.Lineas = new List<LineaFactura>();
                     for (int i = 0; i < productoIds.Length; i++)
                     {
@@ -224,7 +223,7 @@ namespace FacturacionApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Recargar datos si hay error
+            
             ViewBag.Clientes = new SelectList(await _context.Clientes.ToListAsync(), "Id", "Nombre");
             ViewBag.Empresas = new SelectList(await _context.Empresas.ToListAsync(), "Id", "Nombre");
             ViewBag.Productos = new SelectList(await _context.Productos.ToListAsync(), "Id", "Nombre");
@@ -232,7 +231,7 @@ namespace FacturacionApp.Controllers
             return View(factura);
         }
 
-        // GET: Facturas/Delete/5
+        
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -253,7 +252,7 @@ namespace FacturacionApp.Controllers
             return View(factura);
         }
 
-        // POST: Facturas/Delete/5
+        
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

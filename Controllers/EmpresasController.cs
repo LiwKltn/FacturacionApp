@@ -17,19 +17,19 @@ namespace FacturacionApp.Controllers
             _context = context;
         }
 
-        // GET: Empresas
+        
         public async Task<IActionResult> Index()
         {
             return View(await _context.Empresas.ToListAsync());
         }
 
-        // GET: Empresas/Create
+       
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Empresas/Create
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Nombre,CIF")] Empresa empresa)
@@ -44,7 +44,7 @@ namespace FacturacionApp.Controllers
             return View(empresa);
         }
 
-        // GET: Empresas/Edit/5
+        
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -60,7 +60,7 @@ namespace FacturacionApp.Controllers
             return View(empresa);
         }
 
-        // POST: Empresas/Edit/5
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Nombre,CIF")] Empresa empresa)

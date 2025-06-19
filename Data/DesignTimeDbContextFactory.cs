@@ -9,7 +9,7 @@ namespace FacturacionApp.Data
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
-            // Configuración para el entorno de diseño
+            
             IConfigurationRoot configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")

@@ -2,10 +2,9 @@
 
 @{
     ViewData["Title"] = "Listado de Facturas";
-}
-@{
     Layout = "_Layout";
 }
+
 
 <div class="container mt-4">
     <h1 class="mb-4">Listado de Facturas</h1>
@@ -69,14 +68,13 @@
 
 @section Scripts {
     <script>
-        // Función para asegurar que el enlace funciona
+        
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Página cargada correctamente');
 
-            // Opcional: puedes agregar confirmación antes de crear nueva factura
             document.querySelector('a[href*="Create"]')?.addEventListener('click', function(e) {
                 console.log('Navegando a creación de factura');
-                // No preventDefault() para permitir la navegación normal
+                
             });
         });
     </script>

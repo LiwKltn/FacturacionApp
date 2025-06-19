@@ -12,7 +12,7 @@ namespace FacturacionApp.Data
         {
         }
 
-        // DbSets requeridos
+        
         public DbSet<Producto> Productos { get; set; } = null!;
         public DbSet<LineaFactura> LineaFacturas { get; set; } = null!;
         public DbSet<Factura> Facturas { get; set; } = null!;
@@ -23,7 +23,7 @@ namespace FacturacionApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configuraciones de modelos
+            
             modelBuilder.Entity<Producto>(entity =>
             {
                 entity.HasIndex(p => p.Codigo).IsUnique();

@@ -1,5 +1,5 @@
 ﻿document.addEventListener('DOMContentLoaded', function() {
-    // Ejemplo: Cálculo automático de totales
+    
     document.querySelectorAll('.linea-factura').forEach(linea => {
         linea.addEventListener('input', function() {
             calcularTotales();
