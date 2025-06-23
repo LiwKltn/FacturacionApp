@@ -1,12 +1,10 @@
-//using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
-using Microsoft.EntityFrameworkCore;
 using FacturacionApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+// Add services to the container.
 builder.Services.AddControllersWithViews();
-
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -19,14 +17,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.EnableSensitiveDataLogging(); // Solo para desarrollo
 });
 
-// 3. Configuración para desarrollo
 if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddRazorPages();
-
 }
 
-// 4. Configuración de servicios adicionales
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(20);
@@ -36,7 +31,7 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-// 5. Configuración del pipeline HTTP
+// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -53,21 +48,17 @@ app.UseRouting();
 app.UseAuthorization();
 app.UseSession();
 
-// 6. Configuración de endpoints
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Facturas}/{action=Index}/{id?}");
 
-// 7. Inicialización de la base de datos (opcional)
+// Database initialization
 try
 {
     using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
-
-    // Usar solo uno de estos métodos:
-    context.Database.EnsureCreated(); // Para desarrollo rápido
-    // context.Database.Migrate(); // Para usar migraciones
+    context.Database.EnsureCreated();
 }
 catch (Exception ex)
 {
@@ -76,8 +67,3 @@ catch (Exception ex)
 }
 
 app.Run();
-
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Facturas}/{action=Index}/{id?}");

@@ -3,34 +3,99 @@
     Layout = "_Layout";
 }
 
-
 <div class="text-center">
     <h1 class="display-4">Bienvenido al Sistema de Facturación</h1>
-    <p>Sistema integral para la gestión de facturas, clientes y empresas.</p>
+    <p>Sistema integral para la gestión de facturas, clientes, empresas y productos.</p> <!-- Actualizado el texto -->
 
     <div class="row mt-5">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-receipt"></i> Facturas</h5>
-                    <a asp-controller="Facturas" asp-action="Index" class="btn btn-primary">Gestionar</a>
+        <!-- Tarjeta de Facturas -->
+        <div class="col-md-3 mb-4">
+            <!-- Cambiado a col-md-3 para 4 columnas -->
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <i class="bi bi-receipt" style="font-size: 2rem; color: #0d6efd;"></i>
+                    </div>
+                    <h5 class="card-title">Facturas</h5>
+                    <p class="card-text">Gestión de facturas y documentos</p>
+                    <div class="mt-auto">
+                        <a asp-controller="Facturas" asp-action="Index" class="btn btn-primary">Gestionar</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-people-fill"></i> Clientes</h5>
-                    <a asp-controller="Clientes" asp-action="Index" class="btn btn-primary">Gestionar</a>
+
+        <!-- Tarjeta de Clientes -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <i class="bi bi-people-fill" style="font-size: 2rem; color: #0d6efd;"></i>
+                    </div>
+                    <h5 class="card-title">Clientes</h5>
+                    <p class="card-text">Administración de clientes</p>
+                    <div class="mt-auto">
+                        <a asp-controller="Clientes" asp-action="Index" class="btn btn-primary">Gestionar</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title"><i class="bi bi-building"></i> Empresas</h5>
-                    <a asp-controller="Empresas" asp-action="Index" class="btn btn-primary">Gestionar</a>
+
+        <!-- Tarjeta de Empresas -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <i class="bi bi-building" style="font-size: 2rem; color: #0d6efd;"></i>
+                    </div>
+                    <h5 class="card-title">Empresas</h5>
+                    <p class="card-text">Gestión de empresas</p>
+                    <div class="mt-auto">
+                        <a asp-controller="Empresas" asp-action="Index" class="btn btn-primary">Gestionar</a>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Nueva Tarjeta de Productos -->
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <i class="bi bi-box-seam" style="font-size: 2rem; color: #0d6efd;"></i>
+                    </div>
+                    <h5 class="card-title">Productos</h5>
+                    <p class="card-text">Catálogo de productos</p>
+                    <div class="mt-auto">
+                        <a asp-controller="Productos" asp-action="Index" class="btn btn-primary">Gestionar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Sección de resumen rápido (opcional) -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="bi bi-graph-up"></i> Resumen Reciente</h5>
+            </div>
+            <div class="card-body">
+                <p>Últimas facturas creadas</p>
+                <!-- Aquí podrías incluir un listado parcial de últimas facturas -->
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5><i class="bi bi-box"></i> Stock de Productos</h5>
+            </div>
+            <div class="card-body">
+                <p>Productos con bajo stock</p>
+                <!-- Aquí podrías incluir un listado parcial de productos con bajo stock -->
             </div>
         </div>
     </div>

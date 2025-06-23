@@ -26,6 +26,10 @@ namespace FacturacionApp.Models
         [Column(TypeName = "decimal(5,2)")]
         public decimal IvaPorcentaje { get; set; }
 
+        // Propiedad calculada
+        [NotMapped]
+        public decimal TotalLinea => Cantidad * PrecioUnitario;
+
         [ForeignKey("FacturaId")]
         public virtual Factura Factura { get; set; } = null!;
 

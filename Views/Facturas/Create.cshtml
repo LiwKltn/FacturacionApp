@@ -1,52 +1,45 @@
 ﻿@model FacturacionApp.Models.Factura
-
 @{
     ViewData["Title"] = "Nueva Factura";
-}
-@{
     Layout = "_Layout";
 }
+
 <div class="container mt-4">
     <h2>@ViewData["Title"]</h2>
     <hr />
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
-        </div>
-    }
-
-    <form asp-action="Create">
+    <form asp-action="Create" id="facturaForm">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <div class="row">
+            <!-- Columna izquierda -->
             <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="Numero" class="control-label"></label>
-                    <input asp-for="Numero" class="form-control" />
+                <div class="mb-3">
+                    <label asp-for="Numero" class="form-label">Número de Factura</label>
+                    <input asp-for="Numero" class="form-control" readonly />
                     <span asp-validation-for="Numero" class="text-danger"></span>
                 </div>
 
-                <div class="form-group mb-3">
-                    <label asp-for="Fecha" class="control-label"></label>
+                <div class="mb-3">
+                    <label asp-for="Fecha" class="form-label">Fecha</label>
                     <input asp-for="Fecha" type="date" class="form-control" />
                     <span asp-validation-for="Fecha" class="text-danger"></span>
                 </div>
             </div>
 
+            <!-- Columna derecha -->
             <div class="col-md-6">
-                <div class="form-group mb-3">
-                    <label asp-for="ClienteId" class="control-label"></label>
-                    <select asp-for="ClienteId" asp-items="ViewBag.Clientes" class="form-control">
+                <div class="mb-3">
+                    <label asp-for="ClienteId" class="form-label">Cliente</label>
+                    <select asp-for="ClienteId" asp-items="ViewBag.Clientes" class="form-select">
                         <option value="">-- Seleccione Cliente --</option>
                     </select>
                     <span asp-validation-for="ClienteId" class="text-danger"></span>
                 </div>
 
-                <div class="form-group mb-3">
-                    <label asp-for="EmpresaId" class="control-label"></label>
-                    <select asp-for="EmpresaId" asp-items="ViewBag.Empresas" class="form-control">
+                <div class="mb-3">
+                    <label asp-for="EmpresaId" class="form-label">Empresa</label>
+                    <select asp-for="EmpresaId" asp-items="ViewBag.Empresas" class="form-select">
                         <option value="">-- Seleccione Empresa --</option>
                     </select>
                     <span asp-validation-for="EmpresaId" class="text-danger"></span>
@@ -54,54 +47,30 @@
             </div>
         </div>
 
-       
+        <!-- Tabla de líneas -->
         <div class="card mt-4">
-            <div class="card-header">
-                <h5>Líneas de Factura</h5>
-            </div>
-            <div class="card-body">
-                <table class="table" id="lineasTable">
-                    <thead>
+            <div class="card-header"><strong>Líneas de Factura</strong></div>
+            <div class="card-body p-0">
+                <table class="table mb-0" id="lineasTable">
+                    <thead class="table-light">
                         <tr>
-                            <th>Producto</th>
-                            <th>Cantidad</th>
-                            <th>Precio Unitario</th>
-                            <th>Acciones</th>
+                            <th style="width:40%">Producto</th>
+                            <th style="width:15%">Cantidad</th>
+                            <th style="width:20%">Precio Unitario</th>
+                            <th style="width:5%"></th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.Lineas != null)
-                        {
-                            @for (var i = 0; i < Model.Lineas.Count; i++)
-                            {
-                                <tr>
-                                    <td>
-                                        <input asp-for="Lineas[i].Cantidad" class="form-control" />
-                                        <span asp-validation-for="Lineas[i].Cantidad" class="text-danger"></span>
-                                    </td>
-                                    <td>
-                                        <input asp-for="Lineas[i].PrecioUnitario" class="form-control" />
-                                        <span asp-validation-for="Lineas[i].PrecioUnitario" class="text-danger"></span>
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-danger" onclick="removeLine(this)">Eliminar</button>
-                                    </td>
-                                </tr>
-                            }
-                        }
+                        <!-- Se rellenará desde JS -->
                     </tbody>
                 </table>
-                <button type="button" class="btn btn-success" onclick="addLine()">+ Agregar Línea</button>
+                <button type="button" class="btn btn-success m-3" onclick="addLine()">+ Agregar Línea</button>
             </div>
         </div>
 
-        <div class="form-group mt-4">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-save"></i> Guardar Factura
-            </button>
-            <a asp-action="Index" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Volver al Listado
-            </a>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Guardar Factura</button>
+            <a asp-action="Index" class="btn btn-outline-secondary">Volver al Listado</a>
         </div>
     </form>
 </div>
@@ -112,32 +81,54 @@
     }
 
     <script>
-        
-        function addLine() {
-            const table = document.getElementById('lineasTable').getElementsByTagName('tbody')[0];
-            const newRow = table.insertRow();
-            const index = table.rows.length - 1;
+        // Productos disponibles serializados desde el servidor
+        const productos = @Html.Raw(Json.Serialize(
+                                    ((IEnumerable<dynamic>)ViewBag.Productos)
+                                                    .Select(p => new { id = p.Id, nombre = p.Nombre })));
 
-            newRow.innerHTML = `
-                <td>
-                    <input name="Lineas[${index}].Producto" class="form-control" />
-                </td>
-                <td>
-                    <input name="Lineas[${index}].Cantidad" class="form-control" />
-                </td>
-                <td>
-                    <input name="Lineas[${index}].PrecioUnitario" class="form-control" />
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger" onclick="removeLine(this)">Eliminar</button>
-                </td>
-            `;
+    // Cada línea llevará un índice para evitar problemas de binding
+    let idx = 0;
+
+        function addLine(prod = '', cant = 1, precio = 0) {
+            const tbody = document.querySelector('#lineasTable tbody');
+
+            const tr = document.createElement('tr');
+
+            // --- selector de producto
+            const tdProd = tr.insertCell();
+            const sel = document.createElement('select');
+            sel.name = `productoIds[${idx}]`;
+            sel.className = 'form-select';
+            sel.required = true;
+            sel.innerHTML = `<option value=''>-- Seleccione Producto --</option>` +
+                productos.map(p =>
+                    `<option value='${p.id}' ${p.id==prod?'selected':''}>${p.nombre}</option>`
+                ).join('');
+            tdProd.appendChild(sel);
+
+            // --- cantidad
+            const tdCant = tr.insertCell();
+            tdCant.innerHTML =
+                `<input type="number" name="cantidades[${idx}]" min="1" value="${cant}"
+                        class="form-control" required />`;
+
+            // --- precio
+            const tdPrice = tr.insertCell();
+            tdPrice.innerHTML =
+                `<input type="number" name="precios[${idx}]" step="0.01" min="0"
+                        value="${precio}" class="form-control" required />`;
+
+            // --- eliminar
+            const tdDel = tr.insertCell();
+            tdDel.innerHTML =
+                `<button type="button" class="btn btn-danger btn-sm"
+                         onclick="this.closest('tr').remove()">✕</button>`;
+
+            tbody.appendChild(tr);
+            idx++;     // siguiente índice
         }
 
-        
-        function removeLine(button) {
-            const row = button.parentNode.parentNode;
-            row.parentNode.removeChild(row);
-        }
+        // crea la primera línea al cargar
+        document.addEventListener('DOMContentLoaded', () => addLine());
     </script>
 }

@@ -9,44 +9,37 @@ namespace FacturacionApp.Models
         [Key]
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "El número de factura es obligatorio")]
-        [StringLength(20, MinimumLength = 3, ErrorMessage = "El número debe tener entre 3 y 20 caracteres")]
-        [Display(Name = "Número de Factura")]
+        [Required]
+        [StringLength(20)]
         public string Numero { get; set; } = null!;
 
+        [Required]
         [DataType(DataType.Date)]
-        [Display(Name = "Fecha de Emisión")]
-        public DateTime Fecha { get; set; } = DateTime.Today;
+        public DateTime Fecha { get; set; }
 
-        [ForeignKey("Cliente")]
-        [Display(Name = "Cliente")]
-        [Required(ErrorMessage = "Debe seleccionar un cliente")]
+        [Required]
         public int ClienteId { get; set; }
 
-        public Cliente Cliente { get; set; } = null!;
-
-        [ForeignKey("Empresa")]
-        [Display(Name = "Empresa Emisora")]
-        [Required(ErrorMessage = "Debe seleccionar una empresa")]
+        [Required]
         public int EmpresaId { get; set; }
 
-        public Empresa Empresa { get; set; } = null!;
-
-        public List<LineaFactura> Lineas { get; set; } = new List<LineaFactura>();
-
-        [NotMapped]
-        [Display(Name = "Base Imponible")]
-        [DataType(DataType.Currency)]
-        public decimal BaseImponible => Lineas.Sum(l => l.Cantidad * l.PrecioUnitario);
+        // Propiedades calculadas
+        [NotMapped] // No se guarda en la base de datos
+        public decimal BaseImponible => Lineas?.Sum(l => l.Cantidad * l.PrecioUnitario) ?? 0;
 
         [NotMapped]
-        [Display(Name = "Total IVA")]
-        [DataType(DataType.Currency)]
-        public decimal TotalIva => Lineas.Sum(l => l.Cantidad * l.PrecioUnitario * (l.IvaPorcentaje / 100));
+        public decimal TotalIva => Lineas?.Sum(l => l.Cantidad * l.PrecioUnitario * (l.IvaPorcentaje / 100)) ?? 0;
 
         [NotMapped]
-        [Display(Name = "Total Factura")]
-        [DataType(DataType.Currency)]
         public decimal Total => BaseImponible + TotalIva;
+
+        // Relaciones
+        [ForeignKey("ClienteId")]
+        public virtual Cliente Cliente { get; set; } = null!;
+
+        [ForeignKey("EmpresaId")]
+        public virtual Empresa Empresa { get; set; } = null!;
+
+        public virtual ICollection<LineaFactura> Lineas { get; set; } = new List<LineaFactura>();
     }
 }
